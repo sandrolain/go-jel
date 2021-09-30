@@ -2,6 +2,7 @@ package gojel
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -59,4 +60,21 @@ func StartJobs(callback func(interface{}) interface{}, workersNum int) (chan<- i
 		go jobWorker(callback, &counter, w, jobs, results)
 	}
 	return jobs, results
+}
+
+type ThreadSafe struct {
+	Mutex *sync.Mutex
+}
+
+func NewThreadSafe() *ThreadSafe {
+	ts := ThreadSafe{
+		Mutex: &sync.Mutex{},
+	}
+	return &ts
+}
+
+func (t *ThreadSafe) Execute(callabck func()) {
+	t.Mutex.Lock()
+	defer t.Mutex.Unlock()
+	callabck()
 }
